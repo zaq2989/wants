@@ -9,5 +9,5 @@ const app = express();
 const PORT = process.env.PORT || 3760;
 
 app.use(express.static(join(__dirname, 'dist')));
-app.get('*', (req, res) => res.sendFile(join(__dirname, 'dist', 'index.html')));
+app.get('/{*path}', (req, res) => res.sendFile(join(__dirname, 'dist', 'index.html')));
 app.listen(PORT, () => console.log(`Wants app running on port ${PORT}`));
