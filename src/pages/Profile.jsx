@@ -10,22 +10,62 @@ const THEME_COLORS = [
   { name: 'エメラルド', value: '#10b981' },
 ];
 
+const VISIBILITY_OPTIONS = [
+  { value: 'public', icon: '🌐', label: '全体公開', desc: '誰でもプロフィールを見られます' },
+  { value: 'limited', icon: '📍', label: '近くの人のみ', desc: '半径100m以内の人だけ見られます' },
+  { value: 'private', icon: '🔒', label: '非公開', desc: 'wantはすべて匿名で表示されます' },
+];
+
+function loadProfile() {
+  try {
+    return JSON.parse(localStorage.getItem('wants_profile') || '{}');
+  } catch {
+    return {};
+  }
+}
+
 export default function Profile({ darkMode, setDarkMode }) {
-  const [nickname, setNickname] = useState(() => localStorage.getItem('nickname') || '');
-  const [ageGroup, setAgeGroup] = useState(() => localStorage.getItem('ageGroup') || '20代');
-  const [avatar, setAvatar] = useState(() => localStorage.getItem('avatar') || '😊');
+  const [nickname, setNickname] = useState(() => {
+    const p = loadProfile();
+    return p.nickname || localStorage.getItem('nickname') || '';
+  });
+  const [ageGroup, setAgeGroup] = useState(() => {
+    const p = loadProfile();
+    return p.ageGroup || localStorage.getItem('ageGroup') || '20代';
+  });
+  const [avatar, setAvatar] = useState(() => {
+    const p = loadProfile();
+    return p.avatar || localStorage.getItem('avatar') || '😊';
+  });
   const [nearbyEnabled, setNearbyEnabled] = useState(() => localStorage.getItem('nearbyEnabled') !== 'false');
   const [themeColor, setThemeColor] = useState(() => localStorage.getItem('themeColor') || '#6366f1');
+  const [visibility, setVisibility] = useState(() => {
+    const p = loadProfile();
+    return p.visibility || 'public';
+  });
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
+    // 既存の個別キーも保存
     localStorage.setItem('nickname', nickname);
     localStorage.setItem('ageGroup', ageGroup);
     localStorage.setItem('avatar', avatar);
     localStorage.setItem('nearbyEnabled', nearbyEnabled);
     localStorage.setItem('themeColor', themeColor);
+
+    // wants_profile に統合して保存
+    const profile = { nickname, ageGroup, avatar, visibility };
+    localStorage.setItem('wants_profile', JSON.stringify(profile));
+
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const updateVisibility = (val) => {
+    setVisibility(val);
+    // リアルタイムで wants_profile にも反映
+    const current = loadProfile();
+    localStorage.setItem('wants_profile', JSON.stringify({ ...current, visibility: val }));
   };
 
   return (
@@ -128,6 +168,43 @@ export default function Profile({ darkMode, setDarkMode }) {
           }`}>
             {nearbyEnabled ? '📡 近くの人に表示中' : '🔇 非表示モード'}
           </div>
+        </div>
+
+        {/* プロフィール公開設定 */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">プロフィール公開設定</h3>
+          <div className="space-y-2">
+            {VISIBILITY_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => updateVisibility(opt.value)}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
+                  visibility === opt.value
+                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                    : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50'
+                }`}
+              >
+                <span className="text-xl">{opt.icon}</span>
+                <div className="text-left">
+                  <div className="font-medium text-sm text-gray-800 dark:text-gray-100">{opt.label}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{opt.desc}</div>
+                </div>
+                {visibility === opt.value && (
+                  <span className="ml-auto text-indigo-500">✓</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* private 警告バナー */}
+          {visibility === 'private' && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-200 dark:border-orange-800">
+              <span className="text-sm">⚠️</span>
+              <p className="text-xs text-orange-700 dark:text-orange-300 font-medium">
+                すべてのwantが匿名表示になります
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Theme color */}

@@ -4,6 +4,7 @@ export const mockWants = [
   { id: '3', text: 'カフェでMac作業する人募集', category: '趣味', distance: 78, expiresIn: '3時間後', anonymous: false, name: 'あいこ', matched: false },
   { id: '4', text: '週3のバイト探してます（カフェ・接客希望）', category: '仕事', distance: 200, expiresIn: '1週間後', anonymous: false, name: 'けんた', matched: false },
   { id: '5', text: '終電まで飲み相手', category: '飲み', distance: 30, expiresIn: '3時間後', anonymous: true, name: null, matched: false },
+  { id: 'my1', text: '一緒に渋谷で飲みたい', category: '飲み', distance: 15, expiresIn: '1時間後', anonymous: false, name: 'あなた', matched: false },
 ];
 
 export const mockMatches = [

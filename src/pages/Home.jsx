@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { mockWants, CATEGORIES, CATEGORY_CONFIG } from '../data/mockData';
+import { mockWants, mockMyWants, CATEGORIES, CATEGORY_CONFIG } from '../data/mockData';
 import WantCard from '../components/WantCard';
 import WantModal from '../components/WantModal';
 
 export default function Home({ darkMode, setDarkMode }) {
   const [activeCategory, setActiveCategory] = useState('全て');
   const [showModal, setShowModal] = useState(false);
-  const [wants, setWants] = useState(mockWants);
+  const [wants, setWants] = useState(() =>
+    mockWants.map(w => ({ ...w, isOwn: mockMyWants.some(m => m.id === w.id) }))
+  );
   const [connectedId, setConnectedId] = useState(null);
 
   const filtered = activeCategory === '全て'
@@ -28,6 +30,7 @@ export default function Home({ darkMode, setDarkMode }) {
       anonymous: data.anonymous,
       name: data.anonymous ? null : 'あなた',
       matched: false,
+      isOwn: true,
     };
     setWants([newWant, ...wants]);
   };
