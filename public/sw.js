@@ -27,3 +27,26 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });
+
+// 通知クリックで画面遷移
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const wantId = event.notification.data && event.notification.data.wantId;
+  const urlToOpen = wantId ? `/?wantId=${wantId}` : '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // 既存タブがあればそちらにフォーカス
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(urlToOpen);
+          return client.focus();
+        }
+      }
+      // なければ新しいタブを開く
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});

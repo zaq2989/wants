@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 const AVATARS = ['😊', '😎', '🤗', '🥳', '🤩', '😇', '🦊', '🐱', '🐼', '🦁', '🐸', '🐧'];
 const AGE_GROUPS = ['10代', '20代', '30代', '40代以上'];
+const AREAS = ['渋谷', '新宿', '池袋', '銀座', '秋葉原', '六本木', '恵比寿', '中目黒', 'その他'];
 const THEME_COLORS = [
   { name: 'インディゴ', value: '#6366f1' },
   { name: 'バイオレット', value: '#8b5cf6' },
@@ -43,6 +44,14 @@ export default function Profile({ darkMode, setDarkMode }) {
     const p = loadProfile();
     return p.visibility || 'public';
   });
+  const [area, setArea] = useState(() => {
+    const p = loadProfile();
+    return p.area || '渋谷';
+  });
+  const [notifPermission, setNotifPermission] = useState(() => {
+    if (typeof Notification === 'undefined') return 'unsupported';
+    return Notification.permission;
+  });
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
@@ -54,7 +63,7 @@ export default function Profile({ darkMode, setDarkMode }) {
     localStorage.setItem('themeColor', themeColor);
 
     // wants_profile に統合して保存
-    const profile = { nickname, ageGroup, avatar, visibility };
+    const profile = { nickname, ageGroup, avatar, visibility, area };
     localStorage.setItem('wants_profile', JSON.stringify(profile));
 
     setSaved(true);
@@ -63,9 +72,20 @@ export default function Profile({ darkMode, setDarkMode }) {
 
   const updateVisibility = (val) => {
     setVisibility(val);
-    // リアルタイムで wants_profile にも反映
     const current = loadProfile();
     localStorage.setItem('wants_profile', JSON.stringify({ ...current, visibility: val }));
+  };
+
+  const updateArea = (val) => {
+    setArea(val);
+    const current = loadProfile();
+    localStorage.setItem('wants_profile', JSON.stringify({ ...current, area: val }));
+  };
+
+  const requestNotifPermission = async () => {
+    if (typeof Notification === 'undefined') return;
+    const result = await Notification.requestPermission();
+    setNotifPermission(result);
   };
 
   return (
@@ -135,6 +155,65 @@ export default function Profile({ darkMode, setDarkMode }) {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Area */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">よくいるエリア</p>
+          <select
+            value={area}
+            onChange={e => updateArea(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 mt-1"
+          >
+            {AREAS.map(a => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+            条件マッチングに使用されます
+          </p>
+        </div>
+
+        {/* 通知設定 */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-800 dark:text-gray-100 mb-3">通知設定</h3>
+          {notifPermission === 'unsupported' ? (
+            <p className="text-sm text-gray-400 dark:text-gray-500">このブラウザは通知をサポートしていません</p>
+          ) : (
+            <div className="space-y-3">
+              <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${
+                notifPermission === 'granted'
+                  ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                  : notifPermission === 'denied'
+                  ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+                  : 'bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600'
+              }`}>
+                <span className="text-xl">
+                  {notifPermission === 'granted' ? '🔔' : notifPermission === 'denied' ? '🔕' : '🔔'}
+                </span>
+                <div>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                    {notifPermission === 'granted' ? '通知: オン' : notifPermission === 'denied' ? '通知: ブロック中' : '通知: 未設定'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {notifPermission === 'granted'
+                      ? 'マッチ・リクエスト通知を受け取れます'
+                      : notifPermission === 'denied'
+                      ? 'ブラウザ設定から許可してください'
+                      : '許可するとマッチ通知が届きます'}
+                  </p>
+                </div>
+              </div>
+              {notifPermission !== 'granted' && notifPermission !== 'denied' && (
+                <button
+                  onClick={requestNotifPermission}
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold bg-indigo-500 text-white transition-all active:scale-95"
+                >
+                  通知を許可する
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Nearby toggle — BIG and prominent */}

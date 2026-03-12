@@ -13,16 +13,21 @@ const CATEGORIES = ['移動', '食事', '飲み', '仕事', '趣味'];
 const EXPIRES = ['1時間', '3時間', '今日中', '1週間'];
 const VISIBILITY = ['近くのみ', '全体公開'];
 
+const AGE_GROUPS = ['何でも', '10代', '20代', '30代', '40代以上'];
+const GENDERS = ['何でも', '同性', '異性'];
+const AREAS = ['何でも', '渋谷', '新宿', '池袋', '銀座', '秋葉原', '六本木', '恵比寿', '中目黒'];
+
 export default function WantModal({ onClose, onSubmit }) {
   const [text, setText] = useState('');
   const [category, setCategory] = useState('食事');
   const [expires, setExpires] = useState('3時間');
   const [anonymous, setAnonymous] = useState(false);
   const [visibility, setVisibility] = useState('近くのみ');
+  const [conditions, setConditions] = useState({ ageGroup: '何でも', gender: '何でも', area: '何でも' });
 
   const handleSubmit = () => {
     if (!text.trim()) return;
-    onSubmit({ text, category, expires, anonymous, visibility });
+    onSubmit({ text, category, expires, anonymous, visibility, conditions });
     onClose();
   };
 
@@ -33,7 +38,7 @@ export default function WantModal({ onClose, onSubmit }) {
 
       {/* Sheet */}
       <div
-        className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-t-3xl px-5 pt-5 pb-8 z-10"
+        className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-t-3xl px-5 pt-5 pb-8 z-10 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle */}
@@ -109,7 +114,7 @@ export default function WantModal({ onClose, onSubmit }) {
         </div>
 
         {/* Anonymous + Visibility */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 mb-4">
           {/* Anonymous toggle */}
           <div className="flex-1 flex items-center justify-between px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800">
             <span className="text-xs font-medium text-gray-700 dark:text-gray-300">匿名</span>
@@ -132,6 +137,67 @@ export default function WantModal({ onClose, onSubmit }) {
               className="flex-1 bg-transparent text-xs text-gray-700 dark:text-gray-300 focus:outline-none min-w-0"
             >
               {VISIBILITY.map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* 相手への条件（任意） */}
+        <div className="mb-6 bg-gray-50 dark:bg-gray-800 rounded-2xl p-4">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">
+            相手への条件 <span className="text-gray-400 font-normal">（任意）</span>
+          </label>
+
+          {/* 年代 */}
+          <div className="mb-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">年代</p>
+            <div className="flex flex-wrap gap-1">
+              {AGE_GROUPS.map(age => (
+                <button
+                  key={age}
+                  onClick={() => setConditions(c => ({ ...c, ageGroup: age }))}
+                  className={`px-3 py-1 rounded-full text-xs border transition-all ${
+                    conditions.ageGroup === age
+                      ? 'bg-indigo-500 text-white border-indigo-500'
+                      : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                  }`}
+                >
+                  {age}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 性別 */}
+          <div className="mb-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">性別</p>
+            <div className="flex gap-1">
+              {GENDERS.map(gender => (
+                <button
+                  key={gender}
+                  onClick={() => setConditions(c => ({ ...c, gender }))}
+                  className={`px-3 py-1 rounded-full text-xs border transition-all ${
+                    conditions.gender === gender
+                      ? 'bg-indigo-500 text-white border-indigo-500'
+                      : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                  }`}
+                >
+                  {gender}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* エリア */}
+          <div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">エリア</p>
+            <select
+              value={conditions.area}
+              onChange={e => setConditions(c => ({ ...c, area: e.target.value }))}
+              className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            >
+              {AREAS.map(a => (
+                <option key={a} value={a}>{a}</option>
+              ))}
             </select>
           </div>
         </div>

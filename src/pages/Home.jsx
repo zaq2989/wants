@@ -6,14 +6,30 @@ import WantModal from '../components/WantModal';
 export default function Home({ darkMode, setDarkMode }) {
   const [activeCategory, setActiveCategory] = useState('全て');
   const [showModal, setShowModal] = useState(false);
+  const [showMatchOnly, setShowMatchOnly] = useState(false);
   const [wants, setWants] = useState(() =>
     mockWants.map(w => ({ ...w, isOwn: mockMyWants.some(m => m.id === w.id) }))
   );
   const [connectedId, setConnectedId] = useState(null);
 
-  const filtered = activeCategory === '全て'
-    ? wants
-    : wants.filter((w) => w.category === activeCategory);
+  const getUserProfile = () => {
+    try {
+      return JSON.parse(localStorage.getItem('wants_profile') || '{}');
+    } catch {
+      return {};
+    }
+  };
+
+  const filtered = wants
+    .filter(w => activeCategory === '全て' || w.category === activeCategory)
+    .filter(w => {
+      if (!showMatchOnly) return true;
+      const cond = w.conditions || {};
+      const profile = getUserProfile();
+      if (cond.ageGroup && cond.ageGroup !== '何でも' && profile.ageGroup !== cond.ageGroup) return false;
+      if (cond.area && cond.area !== '何でも' && profile.area !== cond.area) return false;
+      return true;
+    });
 
   const handleConnect = (want) => {
     setConnectedId(want.id);
@@ -31,6 +47,7 @@ export default function Home({ darkMode, setDarkMode }) {
       name: data.anonymous ? null : 'あなた',
       matched: false,
       isOwn: true,
+      conditions: data.conditions || { ageGroup: '何でも', gender: '何でも', area: '何でも' },
     };
     setWants([newWant, ...wants]);
   };
@@ -52,8 +69,8 @@ export default function Home({ darkMode, setDarkMode }) {
           </button>
         </div>
 
-        {/* Category filter */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+        {/* Category filter + match toggle */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 items-center">
           {CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat;
             const config = cat !== '全て' ? CATEGORY_CONFIG[cat] : null;
@@ -75,6 +92,18 @@ export default function Home({ darkMode, setDarkMode }) {
               </button>
             );
           })}
+
+          {/* 条件マッチのみトグル */}
+          <button
+            onClick={() => setShowMatchOnly(!showMatchOnly)}
+            className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all ${
+              showMatchOnly
+                ? 'bg-indigo-500 text-white border-indigo-500'
+                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            ✨ 条件マッチのみ
+          </button>
         </div>
       </div>
 
@@ -83,7 +112,17 @@ export default function Home({ darkMode, setDarkMode }) {
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-16">
             <span className="text-4xl mb-3">🔍</span>
-            <p className="text-gray-500 dark:text-gray-400 text-sm">近くにwantがありません</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              {showMatchOnly ? '条件にマッチするwantがありません' : '近くにwantがありません'}
+            </p>
+            {showMatchOnly && (
+              <button
+                onClick={() => setShowMatchOnly(false)}
+                className="mt-3 text-xs text-indigo-500 underline"
+              >
+                すべて表示
+              </button>
+            )}
           </div>
         ) : (
           filtered.map((want) => (

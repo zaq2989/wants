@@ -13,6 +13,18 @@ function getProfileVisibility() {
   }
 }
 
+// 通知送信ヘルパー
+async function sendNotification(title, options) {
+  if (Notification.permission !== 'granted') return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    reg.showNotification(title, options);
+  } catch (e) {
+    // service worker 未対応環境のフォールバック
+    new Notification(title, options);
+  }
+}
+
 export default function WantCard({ want, onConnect }) {
   const [expanded, setExpanded] = useState(false);
   const [showLimitedModal, setShowLimitedModal] = useState(false);
@@ -23,12 +35,41 @@ export default function WantCard({ want, onConnect }) {
   // 表示名の決定ロジック
   const displayName = (() => {
     if (want.isOwn) {
-      // 自分のwantの場合はprofile設定に従う
-      if (visibility === 'private') return null; // 匿名
+      if (visibility === 'private') return null;
       return nickname;
     }
-    // 他人のwantはwant.anonymousに従う
     return want.anonymous ? null : want.name;
+  })();
+
+  // プロフィールとの条件マッチ計算
+  const userProfile = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('wants_profile') || '{}');
+    } catch {
+      return {};
+    }
+  })();
+  const conditions = want.conditions || {};
+
+  const matchScore = (() => {
+    if (!conditions || (!conditions.ageGroup && !conditions.gender && !conditions.area)) return null;
+    let score = 0;
+    let total = 0;
+    if (conditions.ageGroup && conditions.ageGroup !== '何でも') {
+      total++;
+      if (userProfile.ageGroup === conditions.ageGroup) score++;
+    }
+    if (conditions.gender && conditions.gender !== '何でも') {
+      total++;
+      // モック: genderは常にマッチ
+      score++;
+    }
+    if (conditions.area && conditions.area !== '何でも') {
+      total++;
+      if (userProfile.area === conditions.area) score++;
+    }
+    if (total === 0) return null;
+    return Math.round((score / total) * 100);
   })();
 
   // limited設定のとき、プロフィールタップ時のランダム距離チェック（モック）
@@ -36,12 +77,43 @@ export default function WantCard({ want, onConnect }) {
     if (!want.isOwn && visibility !== 'public') return;
     if (want.isOwn && visibility === 'limited') {
       e.stopPropagation();
-      // ランダムで距離チェック（モック）
       const isNearby = Math.random() > 0.5;
       if (!isNearby) {
         setShowLimitedModal(true);
       }
     }
+  };
+
+  // 「つながる」ボタン処理（通知付き）
+  const handleConnect = async (e) => {
+    e.stopPropagation();
+
+    // 通知許可リクエスト
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+
+    // リクエスト送信通知
+    await sendNotification('つながりリクエストを送りました 🎉', {
+      body: `「${want.text.slice(0, 30)}${want.text.length > 30 ? '...' : ''}」`,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      tag: `connect-${want.id}`,
+      data: { wantId: want.id },
+    });
+
+    // 3秒後にマッチ通知（モック）
+    setTimeout(async () => {
+      await sendNotification('マッチしました！ 🎊', {
+        body: `${want.anonymous ? '匿名さん' : want.name}とマッチしました`,
+        icon: '/icons/icon-192.png',
+        tag: `match-${want.id}`,
+        vibrate: [200, 100, 200],
+        data: { wantId: want.id },
+      });
+    }, 3000);
+
+    onConnect && onConnect(want);
   };
 
   return (
@@ -99,6 +171,19 @@ export default function WantCard({ want, onConnect }) {
                   <span className="ml-1 text-[10px] text-indigo-400">📍</span>
                 )}
               </span>
+
+              {/* マッチ度バッジ */}
+              {matchScore !== null && (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  matchScore === 100
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                    : matchScore >= 50
+                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400'
+                    : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                }`}>
+                  {matchScore === 100 ? '✨ 条件ぴったり' : `条件 ${matchScore}% マッチ`}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -107,10 +192,7 @@ export default function WantCard({ want, onConnect }) {
         {expanded && (
           <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onConnect && onConnect(want);
-              }}
+              onClick={handleConnect}
               className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
               style={{ backgroundColor: config.color }}
             >
