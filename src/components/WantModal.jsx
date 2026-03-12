@@ -9,7 +9,8 @@ const TEMPLATES = [
   '散歩の相手募集',
 ];
 
-const CATEGORIES = ['移動', '食事', '飲み', '仕事', '趣味'];
+const CATEGORIES = ['移動', '食事', '飲み', '仕事', '趣味', '助け合い', '話し相手'];
+const REWARDS = ['🙏 お気持ちだけ', '🍺 ビールおごります', '🎁 お礼あり', '🔄 お互い様', '💰 謝礼あり'];
 const EXPIRES = ['1時間', '3時間', '今日中', '1週間'];
 const VISIBILITY = ['近くのみ', '全体公開'];
 
@@ -24,10 +25,11 @@ export default function WantModal({ onClose, onSubmit }) {
   const [anonymous, setAnonymous] = useState(false);
   const [visibility, setVisibility] = useState('近くのみ');
   const [conditions, setConditions] = useState({ ageGroup: '何でも', gender: '何でも', area: '何でも' });
+  const [reward, setReward] = useState('');
 
   const handleSubmit = () => {
     if (!text.trim()) return;
-    onSubmit({ text, category, expires, anonymous, visibility, conditions });
+    onSubmit({ text, category, expires, anonymous, visibility, conditions, reward: reward || null });
     onClose();
   };
 
@@ -112,6 +114,28 @@ export default function WantModal({ onClose, onSubmit }) {
             ))}
           </div>
         </div>
+
+        {/* Reward — 助け合いのみ */}
+        {category === '助け合い' && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">お礼 <span className="font-normal text-gray-400">（任意）</span></p>
+            <div className="flex flex-wrap gap-2">
+              {REWARDS.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setReward(reward === r ? '' : r)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                    reward === r
+                      ? 'bg-teal-500 text-white border-teal-500'
+                      : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Anonymous + Visibility */}
         <div className="flex gap-3 mb-4">

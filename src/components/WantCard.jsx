@@ -172,6 +172,13 @@ export default function WantCard({ want, onConnect }) {
                 )}
               </span>
 
+              {/* お礼バッジ */}
+              {want.reward && (
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400">
+                  {want.reward}
+                </span>
+              )}
+
               {/* マッチ度バッジ */}
               {matchScore !== null && (
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${

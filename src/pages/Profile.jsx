@@ -11,6 +11,8 @@ const THEME_COLORS = [
   { name: 'エメラルド', value: '#10b981' },
 ];
 
+const SKILLS = ['車出せる', '大工仕事', '料理', '英語OK', 'PC/IT', 'DIY', '力仕事', '運転代行', '翻訳', 'デザイン', '子育て経験あり', '農作業'];
+
 const VISIBILITY_OPTIONS = [
   { value: 'public', icon: '🌐', label: '全体公開', desc: '誰でもプロフィールを見られます' },
   { value: 'limited', icon: '📍', label: '近くの人のみ', desc: '半径100m以内の人だけ見られます' },
@@ -52,7 +54,15 @@ export default function Profile({ darkMode, setDarkMode }) {
     if (typeof Notification === 'undefined') return 'unsupported';
     return Notification.permission;
   });
+  const [skills, setSkills] = useState(() => {
+    const p = loadProfile();
+    return p.skills || [];
+  });
   const [saved, setSaved] = useState(false);
+
+  const toggleSkill = (skill) => {
+    setSkills(prev => prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]);
+  };
 
   const handleSave = () => {
     // 既存の個別キーも保存
@@ -63,7 +73,7 @@ export default function Profile({ darkMode, setDarkMode }) {
     localStorage.setItem('themeColor', themeColor);
 
     // wants_profile に統合して保存
-    const profile = { nickname, ageGroup, avatar, visibility, area };
+    const profile = { nickname, ageGroup, avatar, visibility, area, skills };
     localStorage.setItem('wants_profile', JSON.stringify(profile));
 
     setSaved(true);
@@ -284,6 +294,27 @@ export default function Profile({ darkMode, setDarkMode }) {
               </p>
             </div>
           )}
+        </div>
+
+        {/* できること (スキルタグ) */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">できること</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">助け合いマッチングに使われます</p>
+          <div className="flex flex-wrap gap-2">
+            {SKILLS.map((skill) => (
+              <button
+                key={skill}
+                onClick={() => toggleSkill(skill)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                  skills.includes(skill)
+                    ? 'bg-teal-500 text-white border-teal-500'
+                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
+                }`}
+              >
+                {skill}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Theme color */}

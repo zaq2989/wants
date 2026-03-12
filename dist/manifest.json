@@ -1,7 +1,7 @@
 {
-  "name": "Wants - 近距離マッチング",
-  "short_name": "Wants",
-  "description": "近くにいる人とwantでつながる",
+  "name": "Yui - 結い",
+  "short_name": "Yui",
+  "description": "結い — 近くのニーズをつなぐ",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

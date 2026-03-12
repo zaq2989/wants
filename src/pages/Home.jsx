@@ -58,7 +58,8 @@ export default function Home({ darkMode, setDarkMode }) {
       <div className="flex-shrink-0 px-4 pt-12 pb-3 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Wants</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">🪢 Yui</h1>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">結い — 近くのニーズをつなぐ</p>
             <p className="text-xs text-gray-400 dark:text-gray-500">近くの人のwantを見つけよう</p>
           </div>
           <button
