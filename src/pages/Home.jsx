@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { mockWants, mockMyWants, CATEGORIES, CATEGORY_CONFIG } from '../data/mockData';
+import { yuiWants, yuiMyWants, CATEGORIES, CATEGORY_CONFIG } from '../data/mockData';
 import WantCard from '../components/WantCard';
 import WantModal from '../components/WantModal';
 import { YuiBLE } from '../services/YuiBLE';
@@ -10,7 +10,7 @@ export default function Home({ darkMode, setDarkMode }) {
   const [showModal, setShowModal] = useState(false);
   const [showMatchOnly, setShowMatchOnly] = useState(false);
   const [wants, setWants] = useState(() =>
-    mockWants.map(w => ({ ...w, isOwn: mockMyWants.some(m => m.id === w.id) }))
+    yuiWants.map(w => ({ ...w, isOwn: yuiMyWants.some(m => m.id === w.id) }))
   );
   const [connectedId, setConnectedId] = useState(null);
   const [bleUsers, setBleUsers] = useState([]);
@@ -18,7 +18,7 @@ export default function Home({ darkMode, setDarkMode }) {
 
   const getUserProfile = () => {
     try {
-      return JSON.parse(localStorage.getItem('wants_profile') || '{}');
+      return JSON.parse(localStorage.getItem('yui_profile') || '{}');
     } catch {
       return {};
     }

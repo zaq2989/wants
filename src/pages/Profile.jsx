@@ -21,7 +21,7 @@ const VISIBILITY_OPTIONS = [
 
 function loadProfile() {
   try {
-    return JSON.parse(localStorage.getItem('wants_profile') || '{}');
+    return JSON.parse(localStorage.getItem('yui_profile') || '{}');
   } catch {
     return {};
   }
@@ -72,9 +72,9 @@ export default function Profile({ darkMode, setDarkMode }) {
     localStorage.setItem('nearbyEnabled', nearbyEnabled);
     localStorage.setItem('themeColor', themeColor);
 
-    // wants_profile に統合して保存
+    // yui_profile に統合して保存
     const profile = { nickname, ageGroup, avatar, visibility, area, skills };
-    localStorage.setItem('wants_profile', JSON.stringify(profile));
+    localStorage.setItem('yui_profile', JSON.stringify(profile));
 
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -83,13 +83,13 @@ export default function Profile({ darkMode, setDarkMode }) {
   const updateVisibility = (val) => {
     setVisibility(val);
     const current = loadProfile();
-    localStorage.setItem('wants_profile', JSON.stringify({ ...current, visibility: val }));
+    localStorage.setItem('yui_profile', JSON.stringify({ ...current, visibility: val }));
   };
 
   const updateArea = (val) => {
     setArea(val);
     const current = loadProfile();
-    localStorage.setItem('wants_profile', JSON.stringify({ ...current, area: val }));
+    localStorage.setItem('yui_profile', JSON.stringify({ ...current, area: val }));
   };
 
   const requestNotifPermission = async () => {

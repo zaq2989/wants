@@ -1,4 +1,4 @@
-export const mockWants = [
+export const yuiWants = [
   {
     id: '1',
     text: 'アイラのピートについて語りたい',
@@ -75,7 +75,7 @@ export const mockMatches = [
   { id: 'm2', name: '匿名', lastMessage: '明日でもいいですか？', unread: 0, time: '昨日' },
 ];
 
-export const mockMyWants = [
+export const yuiMyWants = [
   { id: 'my1', text: '一緒に渋谷で飲みたい', category: '飲み', expiresIn: '1時間後', anonymous: false, responses: 2 },
 ];
 

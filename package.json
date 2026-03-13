@@ -1,7 +1,8 @@
 {
-  "name": "wants",
+  "name": "yui",
   "private": true,
   "version": "0.1.0",
+  "description": "Yui - 結い、近くのニーズをつなぐ",
   "type": "module",
   "scripts": {
     "dev": "vite",

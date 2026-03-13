@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { mockMyWants, CATEGORY_CONFIG } from '../data/mockData';
+import { yuiMyWants, CATEGORY_CONFIG } from '../data/mockData';
 import WantModal from '../components/WantModal';
 
 export default function MyWants() {
-  const [wants, setWants] = useState(mockMyWants);
+  const [wants, setWants] = useState(yuiMyWants);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
 

@@ -3,7 +3,7 @@ import { CATEGORY_CONFIG } from '../data/mockData';
 
 function getProfileVisibility() {
   try {
-    const profile = JSON.parse(localStorage.getItem('wants_profile') || '{}');
+    const profile = JSON.parse(localStorage.getItem('yui_profile') || '{}');
     return {
       visibility: profile.visibility || 'public',
       nickname: profile.nickname || 'あなた',
@@ -44,7 +44,7 @@ export default function WantCard({ want, onConnect }) {
   // プロフィールとの条件マッチ計算
   const userProfile = (() => {
     try {
-      return JSON.parse(localStorage.getItem('wants_profile') || '{}');
+      return JSON.parse(localStorage.getItem('yui_profile') || '{}');
     } catch {
       return {};
     }
