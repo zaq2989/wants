@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { mockWants, mockMyWants, CATEGORIES, CATEGORY_CONFIG } from '../data/mockData';
 import WantCard from '../components/WantCard';
 import WantModal from '../components/WantModal';
+import { YuiBLE } from '../services/YuiBLE';
+import { YuiLocation } from '../services/YuiLocation';
 
 export default function Home({ darkMode, setDarkMode }) {
   const [activeCategory, setActiveCategory] = useState('全て');
@@ -11,6 +13,8 @@ export default function Home({ darkMode, setDarkMode }) {
     mockWants.map(w => ({ ...w, isOwn: mockMyWants.some(m => m.id === w.id) }))
   );
   const [connectedId, setConnectedId] = useState(null);
+  const [bleUsers, setBleUsers] = useState([]);
+  const [scanning, setScanning] = useState(false);
 
   const getUserProfile = () => {
     try {
@@ -30,6 +34,19 @@ export default function Home({ darkMode, setDarkMode }) {
       if (cond.area && cond.area !== '何でも' && profile.area !== cond.area) return false;
       return true;
     });
+
+  const handleBLEScan = async () => {
+    setScanning(true);
+    setBleUsers([]);
+    await YuiBLE.initialize();
+    await YuiBLE.scanNearby((user) => {
+      setBleUsers(prev => {
+        const exists = prev.find(u => u.id === user.id);
+        return exists ? prev : [...prev, user];
+      });
+    }, 8000);
+    setTimeout(() => setScanning(false), 8000);
+  };
 
   const handleConnect = (want) => {
     setConnectedId(want.id);
@@ -105,6 +122,19 @@ export default function Home({ darkMode, setDarkMode }) {
           >
             ✨ 条件マッチのみ
           </button>
+
+          {/* BLEスキャンボタン */}
+          <button
+            onClick={handleBLEScan}
+            disabled={scanning}
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              scanning
+                ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 animate-pulse'
+                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 shadow-sm'
+            }`}
+          >
+            <span>{scanning ? '🔵 スキャン中...' : '📡 近くを探す'}</span>
+          </button>
         </div>
       </div>
 
@@ -126,7 +156,35 @@ export default function Home({ darkMode, setDarkMode }) {
             )}
           </div>
         ) : (
-          filtered.map((want) => (
+          <>
+          {bleUsers.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 px-1">
+                📡 Bluetooth で発見（{bleUsers.length}人）
+              </h3>
+              {bleUsers.map(user => (
+                <div key={user.id} className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-2xl p-4 mb-2 border border-blue-100 dark:border-blue-800">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-gray-800 dark:text-gray-200">{user.name || '近くの人'}</span>
+                      <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                        user.proximity === 'very_close' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' :
+                        user.proximity === 'close' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300' :
+                        'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                      }`}>
+                        {user.proximity === 'very_close' ? '🟢 すぐ近く' :
+                         user.proximity === 'close' ? '🟡 近く' : '⚪ 付近'}
+                      </span>
+                    </div>
+                    <button className="text-sm px-3 py-1.5 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-colors">
+                      声をかける
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {filtered.map((want) => (
             <div key={want.id} className="relative">
               <WantCard want={want} onConnect={handleConnect} />
               {connectedId === want.id && (
@@ -135,7 +193,8 @@ export default function Home({ darkMode, setDarkMode }) {
                 </div>
               )}
             </div>
-          ))
+          ))}
+          </>
         )}
       </div>
 
